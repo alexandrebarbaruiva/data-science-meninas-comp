@@ -1,0 +1,59 @@
+---
+title: "Relatório Meninas na Computação"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    highlight: zenburn
+  html_document:
+    toc: true
+    theme: united
+---
+
+# Introdução
+
+Foi disponibilizada pelo professor Vinícius [Sobrenome] uma planilha de dados de uma pesquisa 
+realizada de 2011 a 2014 na Semana Nacional de Ciência e Tecnologia (SNCT) em Brasília e tal 
+pesquisa buscava descobrir um pouco mais sobre as meninas do ensino médio de Brasília e 
+por que o baixo nível de interesse nas áreas de Computação.
+
+O trabalho consistirá em transformar e carregar os dados (o processo de extração foi 
+previamente feito). A partir das informações, espera-se obter um insight sobre a atual situação 
+das mulheres na computação.
+
+# Pacotes usados
+
+```{r results="hide"}
+library(dplyr)
+```
+
+# Limpeza dos Dados
+
+```{r}
+data <- read.csv("data.csv", header = TRUE)
+str(data)
+```
+
+Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram seu "Gênero".
+
+```{r}
+data %>%
+  group_by(Gender) %>%
+  summarize(total = n())
+```
+
+Como é possível notar, há a presença de 13 meninos e 14 pessoas não informaram o sexo, 
+portanto, essas 27 pessoas devem ser removidas da análise.
+
+```{r}
+data <- data[data$Gender == 'F',]
+```
+
+Atualmente os dados encontram-se em sua maioria em formato de string, tendo como 
+respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, 
+iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
+
+
+
+
+
