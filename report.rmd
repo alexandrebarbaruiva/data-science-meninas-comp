@@ -1,18 +1,30 @@
 ---
 title: "Relatório Meninas na Computação"
+author: [Alexandre, Amanda Oliveira, Rodrigo Chaves]
 output: 
   pdf_document:
     latex_engine: xelatex
-    toc: true
-    highlight: zenburn
+    template: ./eisvogel.tex
   html_document:
     toc: true
     theme: united
 ---
 
+# Objetivo
+
+Utilizar os dados para conseguir encontrar algum fator que tenha bastante influência quando 
+meninas querem decidir qual curso superior querem fazer e se vão ou não fazer um curso na área
+de computação.
+
 # Introdução
 
-Foi disponibilizada pelo professor Vinícius [Sobrenome] uma planilha de dados de uma pesquisa 
+Durante os anos de 2011 até 2014, a Professora Marístela de Holando aplicou um formulário 
+buscando encontrar fatores que são impactantes quando um menina quer escolher um curso
+de computação. Isso foi motivado pelo fato de que o número de meninas que ingressão 
+nos cursos dessa área é muito menor do que a quantidade de meninos que buscam cursar os mesmos 
+cursos.
+
+O professor Vinícius Borges disponibilizou uma planilha de dados de uma pesquisa 
 realizada de 2011 a 2014 na Semana Nacional de Ciência e Tecnologia (SNCT) em Brasília e tal 
 pesquisa buscava descobrir um pouco mais sobre as meninas do ensino médio de Brasília e 
 por que o baixo nível de interesse nas áreas de Computação.
@@ -23,15 +35,17 @@ das mulheres na computação.
 
 # Pacotes usados
 
-```{r results="hide"}
-library(dplyr)
+```{r results="hide", message=FALSE}
+require(dplyr)
 ```
 
 # Limpeza dos Dados
 
-```{r}
+Inicialmente, o Data Frame possui as seguintes informações armazenadas.
+
+```{r set-options,}
 data <- read.csv("data.csv", header = TRUE)
-str(data)
+names(data)
 ```
 
 Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram seu "Gênero".
@@ -49,11 +63,5 @@ portanto, essas 27 pessoas devem ser removidas da análise.
 data <- data[data$Gender == 'F',]
 ```
 
-Atualmente os dados encontram-se em sua maioria em formato de string, tendo como 
-respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, 
-iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
-
-
-
-
+# Conclusão
 

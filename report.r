@@ -1,3 +1,3 @@
 library("rmarkdown")
 
-render("report.Rmd", "html_document")
+render("report.Rmd", "pdf_document")
