@@ -1,6 +1,6 @@
 ---
 title: "Relatório Meninas na Computação"
-author: [Alexandre, Amanda Oliveira, Rodrigo Chaves]
+author: [Alexandre Augusto, Amanda Oliveira, Rodrigo Chaves]
 output: 
   pdf_document:
     latex_engine: xelatex
@@ -12,8 +12,8 @@ output:
 
 # Objetivo
 
-Utilizar os dados para conseguir encontrar algum fator que tenha bastante influência quando 
-meninas querem decidir qual curso superior querem fazer e se vão ou não fazer um curso na área
+Utilizar os dados disponíveis e a linguagem R para tentar encontrar fatores que tenham correlação e/ou influência quando 
+meninas decidem qual curso superior querem fazer e se vão ou não fazer um curso na área
 de computação.
 
 # Introdução
@@ -37,6 +37,7 @@ das mulheres na computação.
 
 ```{r results="hide", message=FALSE}
 require(dplyr)
+require(party)
 ```
 
 # Limpeza dos Dados
@@ -44,14 +45,14 @@ require(dplyr)
 Inicialmente, o Data Frame possui as seguintes informações armazenadas.
 
 ```{r set-options,}
-data <- read.csv("data.csv", header = TRUE)
-names(data)
+workingdata <- read.csv("data.csv", header = TRUE, stringsAsFactors=FALSE)
+names(workingdata)
 ```
 
 Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram seu "Gênero".
 
 ```{r}
-data %>%
+workingdata %>%
   group_by(Gender) %>%
   summarize(total = n())
 ```
@@ -60,8 +61,61 @@ Como é possível notar, há a presença de 13 meninos e 14 pessoas não informa
 portanto, essas 27 pessoas devem ser removidas da análise.
 
 ```{r}
-data <- data[data$Gender == 'F',]
+workingdata <- workingdata[workingdata$Gender == 'F',]
+```
+
+Atualmente os dados encontram-se em sua maioria em formato de string, tendo como respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
+
+```{r}
+workingdata[,5:38][workingdata[,5:38] == "No"] = 0
+workingdata[,5:38][workingdata[,5:38] == "Yes"] = 1
+workingdata[,5:38][workingdata[,5:38] == "Maybe"] = 2
+```
+
+Os campos de interesse constituem basicamente de "Human Sciences", "Biology-Health Sciences"
+e "Exact Sciences", nomes relativamente grandes, portanto abreviaremos para 0, 1 e 2 respectivamente.
+
+```{r}
+workingdata$Field.Of.Interest[workingdata$Field.Of.Interest == "Human Sciences"] = 0
+workingdata$Field.Of.Interest[workingdata$Field.Of.Interest == "Biology-Health Sciences"] = 1
+workingdata$Field.Of.Interest[workingdata$Field.Of.Interest == "Exact Sciences"] = 2
+```
+ 
+Uma vez transformadas as informações, elas serão convertidas em fatores para melhor manipulá-las.
+
+```{r}
+factor(workingdata[c(4,5,8:38),])
+```
+
+
+```{r}
+
+```
+
+
+# Análise exploratória
+
+Agora que o dado encontra-se bem formatado, é possível explorá-lo com maior facilidade.
+
+** Verificar porcentagens
+
+** Verificar possíveis associações para a parte seguinte
+
+** 
+
+# Predição
+
+Para o próximo passo, tentaremos prever a área de interesse usando as respostas dadas às ultimas perguntas, além de verificar qual pergunta é mais pertinente à previsão da área de interesse.
+
+```{r}
+tree <- ctree(Field.Of.Interest ~ Family.Approves.CS.Major + CS.Is.Prestigious, 
+   data=workingdata)
+plot(tree, main="Conditional Inference Tree for Field of Interest")
 ```
 
 # Conclusão
+
+** Comentar sobre os dados da análise
+** Comentar sobre a predição
+** Comentar sobre a impossibilidade de saber se as estudantes foram ou não para CIC
 
