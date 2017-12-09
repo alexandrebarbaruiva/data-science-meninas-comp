@@ -49,7 +49,7 @@ require(RColorBrewer)
 
 # Limpeza dos Dados
 
-Inicialmente, o Data Frame possui as seguintes informações armazenadas.
+Inicialmente, os Data Frames possuem as seguintes informações armazenadas, sendo a principal distinção entre os dois é que o numericworkingdata contém em vez de texto todas as informações em formato numérico  para facilitar a utilização para previsões.
 
 ```{r import data,}
 workingdata <- read.csv("data.csv", header = TRUE, stringsAsFactors=TRUE)
@@ -101,10 +101,10 @@ numericworkingdata[cols] <- lapply(numericworkingdata[cols], factor)
 
 Agora que o dado encontra-se bem formatado, é possível explorá-lo com maior facilidade.
 
-Como é possível notar, enquanto a maior parte das garotas encontra-se entre o não e o talvez, o grupo que entraria na ciência da computação é bem diverso, tendo em sua maioria mulheres interessadas na área de biologia.
-```{r warning=FALSE, echo=FALSE}
-ggplot(workingdata, aes(x=Would.Enroll.In.CS, fill=Field.Of.Interest )) +
-  geom_histogram(stat="count")
+Como é possível notar, enquanto a maior parte das garotas encontra-se entre o não e o talvez, o grupo que entraria na ciência da computação é bem diverso, tendo em sua maioria mulheres interessadas na área de biologia e não em exatas como se esperaria.
+```{r echo=FALSE, warning=FALSE}
+ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
+  geom_histogram(stat = "count")
 ```
 ```{r warning=FALSE, echo=FALSE}
 
