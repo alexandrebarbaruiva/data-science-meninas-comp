@@ -1,13 +1,16 @@
 ---
 title: "Relatório Meninas na Computação"
-author: [Alexandre Augusto, Amanda Oliveira, Rodrigo Chaves]
-output: 
+author:
+- Alexandre Augusto
+- Amanda Oliveira
+- Rodrigo Chaves
+output:
+  html_document:
+    theme: united
+    toc: yes
   pdf_document:
     latex_engine: xelatex
     template: ./eisvogel.tex
-  html_document:
-    toc: true
-    theme: united
 ---
 
 # Objetivo
@@ -37,21 +40,26 @@ das mulheres na computação.
 
 ```{r results="hide", message=FALSE}
 require(dplyr)
+require(ggplot2)
 require(party)
+require(rpart)
+require(rpart.plot)
+require(RColorBrewer)
 ```
 
 # Limpeza dos Dados
 
 Inicialmente, o Data Frame possui as seguintes informações armazenadas.
 
-```{r set-options,}
-workingdata <- read.csv("data.csv", header = TRUE, stringsAsFactors=FALSE)
+```{r import data,}
+workingdata <- read.csv("data.csv", header = TRUE, stringsAsFactors=TRUE)
+numericworkingdata <- read.csv("data.csv", header = TRUE, stringsAsFactors=FALSE)
 names(workingdata)
 ```
 
 Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram seu "Gênero".
 
-```{r}
+```{r check genders}
 workingdata %>%
   group_by(Gender) %>%
   summarize(total = n())
@@ -60,58 +68,69 @@ workingdata %>%
 Como é possível notar, há a presença de 13 meninos e 14 pessoas não informaram o sexo, 
 portanto, essas 27 pessoas devem ser removidas da análise.
 
-```{r}
+```{r get only females}
 workingdata <- workingdata[workingdata$Gender == 'F',]
+numericworkingdata <- numericworkingdata[numericworkingdata$Gender == 'F',]
 ```
 
 Atualmente os dados encontram-se em sua maioria em formato de string, tendo como respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
 
-```{r}
-workingdata[,5:38][workingdata[,5:38] == "No"] = 0
-workingdata[,5:38][workingdata[,5:38] == "Yes"] = 1
-workingdata[,5:38][workingdata[,5:38] == "Maybe"] = 2
+```{r change yes maybe no}
+numericworkingdata[,5:38][numericworkingdata[,5:38] == "No"] = 0
+numericworkingdata[,5:38][numericworkingdata[,5:38] == "Yes"] = 1
+numericworkingdata[,5:38][numericworkingdata[,5:38] == "Maybe"] = 2
 ```
 
 Os campos de interesse constituem basicamente de "Human Sciences", "Biology-Health Sciences"
 e "Exact Sciences", nomes relativamente grandes, portanto abreviaremos para 0, 1 e 2 respectivamente.
 
-```{r}
-workingdata$Field.Of.Interest[workingdata$Field.Of.Interest == "Human Sciences"] = 0
-workingdata$Field.Of.Interest[workingdata$Field.Of.Interest == "Biology-Health Sciences"] = 1
-workingdata$Field.Of.Interest[workingdata$Field.Of.Interest == "Exact Sciences"] = 2
+```{r change field of interest}
+numericworkingdata$Field.Of.Interest[numericworkingdata$Field.Of.Interest == "Human Sciences"] = 0
+numericworkingdata$Field.Of.Interest[numericworkingdata$Field.Of.Interest == "Biology-Health Sciences"] = 1
+numericworkingdata$Field.Of.Interest[numericworkingdata$Field.Of.Interest == "Exact Sciences"] = 2
 ```
  
 Uma vez transformadas as informações, elas serão convertidas em fatores para melhor manipulá-las.
 
-```{r}
-factor(workingdata[c(4,5,8:38),])
+```{r change to factors}
+cols <- c(4,5,8:38)
+numericworkingdata[cols] <- lapply(numericworkingdata[cols], factor)
 ```
-
-
-```{r}
-
-```
-
 
 # Análise exploratória
 
 Agora que o dado encontra-se bem formatado, é possível explorá-lo com maior facilidade.
 
+Como é possível notar, enquanto a maior parte das garotas encontra-se entre o não e o talvez, o grupo que entraria na ciência da computação é bem diverso, tendo em sua maioria mulheres interessadas na área de biologia.
+```{r warning=FALSE, echo=FALSE}
+ggplot(workingdata, aes(x=Would.Enroll.In.CS, fill=Field.Of.Interest )) +
+  geom_histogram(stat="count")
+```
+```{r warning=FALSE, echo=FALSE}
+
+table(workingdata$Field.Of.Interest[workingdata$Would.Enroll.In.CS == "Yes"])
+```
+
+
+
+
+```{r warning=FALSE, echo=FALSE}
+ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  geom_histogram(stat="count")
+```
+```{r warning=FALSE, echo=FALSE}
+ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  geom_histogram(stat="count", position = "fill")
+```
 ** Verificar porcentagens
 
 ** Verificar possíveis associações para a parte seguinte
 
-** 
+
 
 # Predição
 
 Para o próximo passo, tentaremos prever a área de interesse usando as respostas dadas às ultimas perguntas, além de verificar qual pergunta é mais pertinente à previsão da área de interesse.
-
-```{r}
-tree <- ctree(Field.Of.Interest ~ Family.Approves.CS.Major + CS.Is.Prestigious, 
-   data=workingdata)
-plot(tree, main="Conditional Inference Tree for Field of Interest")
-```
 
 # Conclusão
 
