@@ -320,10 +320,12 @@ um fenômeno que aponta que a presença feminina está afetada não só na compu
 
 ```{r warning=FALSE, echo=FALSE}
 ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  labs(title="Histogram for Educational Stage", x = "Educational Stage", y = "Count", fill="Field of Interest") +
   geom_histogram(stat="count")
 ```
 ```{r warning=FALSE, echo=FALSE}
 ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  labs(title="Histogram for Educational Stage proportionally", x="Educational Stage", y="Count", fill="Field of Interest") +
   geom_histogram(stat="count", position = "fill")
 ```
 
