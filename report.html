@@ -148,7 +148,7 @@ $(document).ready(function () {
 </div>
 <div id="limpeza-dos-dados" class="section level1">
 <h1>Limpeza dos Dados</h1>
-<pre class="r"><code>data = read.csv(&quot;data.csv&quot;, header = TRUE)
+<pre class="r"><code>data &lt;- read.csv(&quot;data.csv&quot;, header = TRUE)
 str(data)</code></pre>
 <pre><code>## 'data.frame':    3707 obs. of  38 variables:
 ##  $ Year                                     : int  2014 2014 2014 2014 2014 2014 2014 2014 2014 2014 ...
@@ -189,16 +189,19 @@ str(data)</code></pre>
 ##  $ Has.Used.For.Creating.Web.Pages          : Factor w/ 2 levels &quot;No&quot;,&quot;Yes&quot;: 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ Has.Used.For.Development                 : Factor w/ 2 levels &quot;No&quot;,&quot;Yes&quot;: 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ Has.Used.Other.Softwares                 : Factor w/ 2 levels &quot;No&quot;,&quot;Yes&quot;: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+<p>Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram seu “Gênero”.</p>
 <pre class="r"><code>data %&gt;%
-  group_by(Year) %&gt;%
+  group_by(Gender) %&gt;%
   summarize(total = n())</code></pre>
-<pre><code>## # A tibble: 4 x 2
-##    Year total
-##   &lt;int&gt; &lt;int&gt;
-## 1  2011  1821
-## 2  2012   944
-## 3  2013   517
-## 4  2014   425</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##   Gender total
+##   &lt;fctr&gt; &lt;int&gt;
+## 1           14
+## 2      F  3680
+## 3      M    13</code></pre>
+<p>Como é possível notar, há a presença de 13 meninos e 14 pessoas não informaram o sexo, portanto, essas 27 pessoas devem ser removidas da análise.</p>
+<pre class="r"><code>data &lt;- data[data$Gender == 'F',]</code></pre>
+<p>Atualmente os dados encontram-se em sua maioria em formato de string, tendo como respostas “Yes”, “No” e “Maybe”. Para que se torne mais fácil de manipular, iremos transformar tais strings em zeros (“No”), uns (“Yes”) e dois (“Maybe”).</p>
 </div>
 
 

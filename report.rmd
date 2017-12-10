@@ -1,67 +1,241 @@
 ---
 title: "Relatório Meninas na Computação"
-author: [Alexandre, Amanda Oliveira, Rodrigo Chaves]
+author: [Alexandre, Amanda Oliveira Alves - 15/0116276, Rodrigo de Araujo Chaves - 13/0132624]
 output: 
   pdf_document:
     latex_engine: xelatex
     template: ./eisvogel.tex
+    keep_tex: true
   html_document:
     toc: true
     theme: united
 ---
 
+# Introdução
+
+Hoje, os cursos da área de computação, Ciência da Computação, por exemplo, tem uma quantidade de
+meninos muito maior do que a quantidade de meninas. Motivada por essa estátistica, a Professora 
+Maristela Terto de Holanda aplicou um formulário de 2011 a 2014 na Semana Nacional de Ciência e 
+Tecnologia (SNCT) em Brasília buscando encontrar fatores que são impactantes quando 
+um menina quer escolher um curso de computação. Os dados foram disponibilizados pelo professor
+Vinicius Ruela Pereira Borges.
+
+Esse trabalho irá realizar as seguintes atividades:
+
+1. **Limpeza dos Dados:** explicar como foi o processo de carregamento dos dados (o processo 
+de extração foi previamente feito) e como os dados inconsistentes foram removidos.
+
+2. **Classificação de Atributos:** explicar quais métodos foram usados para classificar
+a importância/seleção dos dados para a próxima etapa.
+
+3. **Criação de um modelo estátistico**: usando o modelo *Support Vector Machine* [1], criar um
+modelo que mostre quais os atributos são mais importantes quando um menina vai decidir que
+quer ou não fazer o curso de Ciência da Computação.
+
 # Objetivo
 
 Utilizar os dados para conseguir encontrar algum fator que tenha bastante influência quando 
 meninas querem decidir qual curso superior querem fazer e se vão ou não fazer um curso na área
-de computação.
+de computação. Além disso, encontrar pontos que podem ser melhorados na formulário e assim
+facilitar estudos futuros.
 
-# Introdução
-
-Durante os anos de 2011 até 2014, a Professora Marístela de Holando aplicou um formulário 
-buscando encontrar fatores que são impactantes quando um menina quer escolher um curso
-de computação. Isso foi motivado pelo fato de que o número de meninas que ingressão 
-nos cursos dessa área é muito menor do que a quantidade de meninos que buscam cursar os mesmos 
-cursos.
-
-O professor Vinícius Borges disponibilizou uma planilha de dados de uma pesquisa 
-realizada de 2011 a 2014 na Semana Nacional de Ciência e Tecnologia (SNCT) em Brasília e tal 
-pesquisa buscava descobrir um pouco mais sobre as meninas do ensino médio de Brasília e 
-por que o baixo nível de interesse nas áreas de Computação.
-
-O trabalho consistirá em transformar e carregar os dados (o processo de extração foi 
-previamente feito). A partir das informações, espera-se obter um insight sobre a atual situação 
-das mulheres na computação.
-
-# Pacotes usados
+# Pacotes Utilizados
 
 ```{r results="hide", message=FALSE}
-require(dplyr)
+library(dplyr)
+library(caret)
+library(corrplot)
+library(knitr)
 ```
+\newpage
 
 # Limpeza dos Dados
 
-Inicialmente, o Data Frame possui as seguintes informações armazenadas.
-
-```{r set-options,}
-data <- read.csv("data.csv", header = TRUE)
-names(data)
-```
-
-Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram seu "Gênero".
+Inicialmente, o *data frame* possui as seguintes informações armazenadas.
 
 ```{r}
-data %>%
-  group_by(Gender) %>%
-  summarize(total = n())
+df <- read.csv("data.csv", header = TRUE, na.strings=c(""), 
+                  stringsAsFactors=FALSE)
+names(df)
 ```
 
-Como é possível notar, há a presença de 13 meninos e 14 pessoas não informaram o sexo, 
-portanto, essas 27 pessoas devem ser removidas da análise.
+
+Para facilitar o processo de limpeza desses dados, as células do *data frame* que possuem respostas
+em branco (`""`) são lidas como `NA` e assim podem ser removidas.
+<br/>
 
 ```{r}
-data <- data[data$Gender == 'F',]
+df <- df[complete.cases(df),]
 ```
+
+
+Observa-se que alunos que responderam os questinários colocaram seu "Gênero".
+
+```{r}
+kable(df %>%
+        group_by(Gender) %>%
+        summarize(total = n()))
+```
+
+Como é possível notar, há a presença de 9 meninos que serão removidos da análise.
+
+```{r}
+df <- df[df$Gender == 'F',]
+```
+\newpage
+
+# Análise de Características
+
+É importante visualizar a coluna `Would.Enroll.In.CS` pois essa demonstra o interesse do estudante
+em curso um curso de Ciência da Computação. 
+
+```{r, echo=FALSE}
+kable(df %>%
+      group_by(Would.Enroll.In.CS) %>%
+      summarize(total = n()))
+```
+
+As características importantes para a analise estão presentes na colunas 8 até a 38, as quais
+são perguntas do questionário que mostram atividades ou hábitos que podem possivelmente aumentar
+ou diminiur o interesse da estudante nos cursos de computação.
+
+Para essa análise, vamos remover as colunas `Year, Gender, Educational.Stage, Field.Of.Interest, Q1,
+Q2` para simplificar a análise.
+
+```{r}
+df <- df[, -(1:4), drop=FALSE ]
+df <- df[, -(2:3), drop=FALSE ]
+```
+
+## Preprocessamento
+
+Para simplificar a analise, usa-se a matriz de correlação para identificar quais atributos estão
+muito relacionados entre si e assim podem ser removidos. Para essa análise, todos os valores devem
+ser númericos. A função `decide` analisa a resposta em:
+
+1. "Yes" equivale a 2;
+2. "Maybe" equivale a 1;
+3. "No" equivale a 0
+
+e troca o valor para númerico. A coluna `Would.Enroll.In.CS` será transformada em factor para 
+análise de categorias.
+
+```{r}
+decide <- function(x) {
+  switch(x,
+    "Yes"= {
+      return(2)
+    },
+    "Maybe"={
+      return(1)
+    },
+    "No"={
+      return(0)
+    },
+    {
+      return(0)
+    }
+  )
+}
+
+for(j in 1:32) {
+  for(i in 1:3178) {
+    df[i, j] <- decide(df[i, j])
+  }
+  df[,j] <- as.numeric(df[,j])
+}
+
+df$Would.Enroll.In.CS <- factor(df$Would.Enroll.In.CS, 
+                                levels=c(0,1,2), 
+                                labels=c("No", "Maybe", "Yes"))
+```
+
+Agora a matriz de correlação pode ser calculada:
+
+```{r}
+corMatrix <- cor(df[,2:32])
+
+corrplot(corMatrix, method = "circle", cl.pos = "n", tl.pos = "n", 
+                    type = "lower")
+```
+
+Observando o gráfico, existem poucos atributos correlacionados, mas ainda existem.
+
+```{r}
+highlyCorrelated <- findCorrelation(corMatrix, cutoff=0.50)
+print(names(df)[highlyCorrelated])
+```
+
+Remove-se as colunas com correlação maior que 0.5.
+
+```{r}
+df <- df[,-highlyCorrelated]
+```
+\newpage
+
+# Modelo de Treino
+
+Para essa analise, o conjunto de dados será dividido em dois grupos: o grupo de treino e o 
+grupo de testes.
+
+```{r}
+trainingIndexes <- createDataPartition(df$Would.Enroll.In.CS, 
+                                      p=0.85, list=FALSE)
+trainingData <- df[trainingIndexes,]
+testData <- df[-trainingIndexes,]
+```
+
+Usando o conjunto de dados de treino, usa-se a *Support Vector Machine* [1] com uma função 
+polinomial como *kernel* para criar um previsão de como os dados se comportam.
+
+```{r, results='hide', message=FALSE}
+trainingParameters <- trainControl(method="repeatedcv", number=10, 
+                                  repeats=2)
+
+SVModel <- train(Would.Enroll.In.CS ~ ., 
+                 data = trainingData,
+                 method = "svmPoly",
+                 trControl= trainingParameters,
+                 tuneGrid = data.frame(degree = 1,
+                                       scale = 1,
+                                       C = 1),
+                 preProcess = c("pca","scale","center"),
+                 na.action = na.omit
+)
+```
+
+Com o modelo preparado, usa-se a função `varImp` para descobrir quais colunas tem um impacto
+maior em cada classificação, ou seja, se o candidato optou por "No", "Maybe" ou "Yes" quando 
+respondeu `Would.Enroll.In.CS`.
+
+```{r}
+importance <- varImp(SVModel, scale=FALSE)
+plot(importance)
+```
+
+Agora, usando o conjunto de dados de teste, uma amostragem é criada tentando prever quantas 
+respostas corretas podem ser alcançadas usando esse modelo.
+
+```{r}
+predictions <- predict(SVModel, testData)
+cm <- confusionMatrix(predictions, testData$Would.Enroll.In.CS)
+print(cm)
+```
+
+Usando o Modelo *Support Vector Machine*, temos uma precisão de 56,51%.
+\newpage
 
 # Conclusão
+
+Como a análise realizada nesse relatório, podem-se chegar a duas conclusões:
+
+1. A partitipação da familía tem um impacto muito forte para a candidata escolher ou não
+um curso na área de computação.
+2. As perguntas que tem uma importância menor 0.6 podem ter uma abordagem diferente para
+que em futuras pesquisas possam se aprofundar mais nessa questão e se aproximar
+mais de uma solução prática.
+
+# Referências
+
+[1] https://pt.wikipedia.org/wiki/Máquina_de_vetores_de_suporte acessado em 05/12/2017.
 
