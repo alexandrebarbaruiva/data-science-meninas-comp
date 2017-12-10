@@ -1,6 +1,6 @@
 ---
 title: "Relatório Meninas na Computação"
-author: [Alexandre Augusto, Amanda Oliveira Alves, Rodrigo de Araujo Chaves]
+author: [Alexandre Augusto de Sá dos Santos, Amanda Oliveira Alves, Rodrigo de Araujo Chaves]
 output: 
   pdf_document:
     latex_engine: xelatex
@@ -14,7 +14,7 @@ output:
 **Trabalho - Meninas na Computação**
 
 **Alunos:**
-Alexandre Augusto -  
+Alexandre Augusto de Sá dos Santos - 15/0056940
 Amanda Oliveira Alves - 15/0116276
 Rodrigo de Araujo Chaves - 13/0132624
 
@@ -245,56 +245,16 @@ Usando o Modelo *Support Vector Machine*, temos uma precisão de 56,51%.
 ## Preprocessamento
 
 Para manter essa etapa idependente das etapas executadas anteriormente,
-os dados são relidos dos arquivos `.csv` e limpados novamente.
+os dados são relidos dos arquivos `.csv` novamente.
 
 ```{r}
 workingdata <- read.csv("data.csv", 
                         header = TRUE, 
                         stringsAsFactors=TRUE,
                         na.strings=c(""))
-numericworkingdata <- read.csv("data.csv", 
-                        header = TRUE, 
-                        stringsAsFactors=FALSE,
-                        na.strings=c(""))
 workingdata <- workingdata[complete.cases(workingdata),]
-numericworkingdata <- 
-  numericworkingdata[complete.cases(numericworkingdata),]
 workingdata <- workingdata[workingdata$Gender == 'F',]
-numericworkingdata <- 
-  numericworkingdata[numericworkingdata$Gender == 'F',]
 ```
-
-Atualmente os dados encontram-se em sua maioria em formato de string, tendo 
-como respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, 
-iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
-
-```{r change yes maybe no}
-numericworkingdata[,5:38][numericworkingdata[,5:38] == "No"] = 0
-numericworkingdata[,5:38][numericworkingdata[,5:38] == "Yes"] = 1
-numericworkingdata[,5:38][numericworkingdata[,5:38] == "Maybe"] = 2
-```
-
-Os campos de interesse constituem basicamente de "Human Sciences", "Biology-Health Sciences"
-e "Exact Sciences", nomes relativamente grandes, portanto abreviaremos para 0, 1 e 2 
-respectivamente.
-
-```{r change field of interest, echo=FALSE}
-numericworkingdata$Field.Of.Interest[
-  numericworkingdata$Field.Of.Interest == "Human Sciences"] = 0
-numericworkingdata$Field.Of.Interest[
-  numericworkingdata$Field.Of.Interest == "Biology-Health Sciences"] = 1
-numericworkingdata$Field.Of.Interest[
-  numericworkingdata$Field.Of.Interest == "Exact Sciences"] = 2
-```
- 
-Uma vez transformadas as informações, elas serão convertidas em fatores para melhor manipulá-las.
-
-```{r change to factors}
-cols <- c(4,5,8:38)
-numericworkingdata[cols] <- lapply(numericworkingdata[cols], factor)
-```
-
-Agora que o dado encontra-se bem formatado, é possível explorá-lo com maior facilidade.
 
 Como é possível notar, enquanto a maior parte das garotas encontra-se entre 
 o não e o talvez, o grupo que entraria na ciência da computação é bem diverso, 
@@ -303,6 +263,7 @@ como se esperaria.
 
 ```{r echo=FALSE, warning=FALSE}
 ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
+  labs(x="Would Enroll in CS", fill="Field of Interest") +
   geom_histogram(stat = "count")
 ```
 ```{r warning=FALSE, echo=FALSE}
@@ -357,7 +318,7 @@ perguntas_selecionadas = c("Most.CS.Students.Are.Male",
 ```
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, warning=FALSE}
 g1 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count") +
   labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
@@ -444,10 +405,15 @@ g24 <- ggplot(workingdata, aes(x=Has.Used.For.Development, fill=Would.Enroll.In.
 
 ```
 
+De acordo com a pesquisa, por mais que a maior parte das participantes acredite que a maioria dos estudantes da computação sejam homens, das que tem interesse em CS metade afirmou que não há predomínio masculino. Quanto à necessidade de conhecimento em computadores, os grupos de interesse e sem interesse votaram de maneira parecida, seguindo a mesma proporção.
+O gráfico mais interessante é o relacionando a aprovação familiar com o interesse na computação. Ele demonstra que conforme a aprovação aumenta, maior é o interesse, o que pode caracterizar correlação.
+
 ```{r warning=FALSE, echo=FALSE}
 multiplot(g1,g2,g3,g4,g13,g14,g15,g16, cols=2)
 
 ```
+
+Outro gráfico que mostra resultados inusitados é em relação ao uso de computador em casa. Enquanto a quantidade de mulheres que não usa o computador é baixa, desse grupo metade tem interesse na computação.
 
 ```{r warning=FALSE, echo=FALSE}
 multiplot(g5,g6,g7,g8,g17,g18,g19,g20, cols = 2)
@@ -456,8 +422,6 @@ multiplot(g5,g6,g7,g8,g17,g18,g19,g20, cols = 2)
 ```{r warning=FALSE, echo=FALSE}
 multiplot(g9,g10,g11,g12,g21,g22,g23,g24, cols = 2)
 ```
-
-** Verificar possíveis associações para a parte seguinte
 
 =======
 # Conclusão
