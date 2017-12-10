@@ -1,6 +1,6 @@
 ---
 title: "Relatório Meninas na Computação"
-author: [Alexandre, Amanda Oliveira Alves - 15/0116276, Rodrigo de Araujo Chaves - 13/0132624]
+author: [Alexandre Augusto, Amanda Oliveira Alves - 15/0116276, Rodrigo de Araujo Chaves - 13/0132624]
 output: 
   pdf_document:
     latex_engine: xelatex
@@ -28,16 +28,19 @@ de extração foi previamente feito) e como os dados inconsistentes foram removi
 2. **Classificação de Atributos:** explicar quais métodos foram usados para classificar
 a importância/seleção dos dados para a próxima etapa.
 
-3. **Criação de um modelo estátistico**: usando o modelo *Support Vector Machine* [1], criar um
+3. **Modelo de Treino**: usando o modelo *Support Vector Machine* [1], criar um
 modelo que mostre quais os atributos são mais importantes quando um menina vai decidir que
 quer ou não fazer o curso de Ciência da Computação.
 
+4. **Análise exploratória:** buscando encontrar de forma manual pontos relevantes quando um 
+menina vai decidir que quer ou não fazer o curso de Ciência da Computação.
+
 # Objetivo
 
-Utilizar os dados para conseguir encontrar algum fator que tenha bastante influência quando 
-meninas querem decidir qual curso superior querem fazer e se vão ou não fazer um curso na área
-de computação. Além disso, encontrar pontos que podem ser melhorados na formulário e assim
-facilitar estudos futuros.
+Utilizar os dados disponíveis e a linguagem R para tentar encontrar fatores que tenham 
+correlação e/ou influência quando 
+meninas decidem qual curso superior querem fazer e se vão ou não fazer um curso na área
+de computação.
 
 # Pacotes Utilizados
 
@@ -46,10 +49,12 @@ library(dplyr)
 library(caret)
 library(corrplot)
 library(knitr)
+library(ggplot2)
+library(Rmisc)
 ```
 \newpage
 
-# Limpeza dos Dados
+# 1. Limpeza dos Dados
 
 Inicialmente, o *data frame* possui as seguintes informações armazenadas.
 
@@ -58,7 +63,6 @@ df <- read.csv("data.csv", header = TRUE, na.strings=c(""),
                   stringsAsFactors=FALSE)
 names(df)
 ```
-
 
 Para facilitar o processo de limpeza desses dados, as células do *data frame* que possuem respostas
 em branco (`""`) são lidas como `NA` e assim podem ser removidas.
@@ -74,7 +78,7 @@ Observa-se que alunos que responderam os questinários colocaram seu "Gênero".
 ```{r}
 kable(df %>%
         group_by(Gender) %>%
-        summarize(total = n()))
+        dplyr::summarize(total = n()))
 ```
 
 Como é possível notar, há a presença de 9 meninos que serão removidos da análise.
@@ -84,7 +88,7 @@ df <- df[df$Gender == 'F',]
 ```
 \newpage
 
-# Análise de Características
+# 2. Análise de Características
 
 É importante visualizar a coluna `Would.Enroll.In.CS` pois essa demonstra o interesse do estudante
 em curso um curso de Ciência da Computação. 
@@ -92,7 +96,7 @@ em curso um curso de Ciência da Computação.
 ```{r, echo=FALSE}
 kable(df %>%
       group_by(Would.Enroll.In.CS) %>%
-      summarize(total = n()))
+      dplyr::summarize(total = n()))
 ```
 
 As características importantes para a analise estão presentes na colunas 8 até a 38, as quais
@@ -173,7 +177,7 @@ df <- df[,-highlyCorrelated]
 ```
 \newpage
 
-# Modelo de Treino
+# 3. Modelo de Treino
 
 Para essa analise, o conjunto de dados será dividido em dois grupos: o grupo de treino e o 
 grupo de testes.
@@ -224,6 +228,153 @@ print(cm)
 
 Usando o Modelo *Support Vector Machine*, temos uma precisão de 56,51%.
 \newpage
+
+# 4. Análise exploratória
+
+## Preprocessamento
+
+Para manter essa etapa idependente das etapas executadas anteriormente,
+os dados são relidos dos arquivos `.csv` e limpados novamente.
+
+```{r}
+workingdata <- read.csv("data.csv", 
+                        header = TRUE, 
+                        stringsAsFactors=TRUE,
+                        na.strings=c(""))
+numericworkingdata <- read.csv("data.csv", 
+                        header = TRUE, 
+                        stringsAsFactors=FALSE,
+                        na.strings=c(""))
+workingdata <- workingdata[complete.cases(workingdata),]
+numericworkingdata <- 
+  numericworkingdata[complete.cases(numericworkingdata),]
+workingdata <- workingdata[workingdata$Gender == 'F',]
+numericworkingdata <- 
+  numericworkingdata[numericworkingdata$Gender == 'F',]
+```
+
+Atualmente os dados encontram-se em sua maioria em formato de string, tendo 
+como respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, 
+iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
+
+```{r change yes maybe no}
+numericworkingdata[,5:38][numericworkingdata[,5:38] == "No"] = 0
+numericworkingdata[,5:38][numericworkingdata[,5:38] == "Yes"] = 1
+numericworkingdata[,5:38][numericworkingdata[,5:38] == "Maybe"] = 2
+```
+
+Os campos de interesse constituem basicamente de "Human Sciences", "Biology-Health Sciences"
+e "Exact Sciences", nomes relativamente grandes, portanto abreviaremos para 0, 1 e 2 
+respectivamente.
+
+```{r change field of interest, echo=FALSE}
+numericworkingdata$Field.Of.Interest[
+  numericworkingdata$Field.Of.Interest == "Human Sciences"] = 0
+numericworkingdata$Field.Of.Interest[
+  numericworkingdata$Field.Of.Interest == "Biology-Health Sciences"] = 1
+numericworkingdata$Field.Of.Interest[
+  numericworkingdata$Field.Of.Interest == "Exact Sciences"] = 2
+```
+ 
+Uma vez transformadas as informações, elas serão convertidas em fatores para melhor manipulá-las.
+
+```{r change to factors}
+cols <- c(4,5,8:38)
+numericworkingdata[cols] <- lapply(numericworkingdata[cols], factor)
+```
+
+Agora que o dado encontra-se bem formatado, é possível explorá-lo com maior facilidade.
+
+Como é possível notar, enquanto a maior parte das garotas encontra-se entre 
+o não e o talvez, o grupo que entraria na ciência da computação é bem diverso, 
+tendo em sua maioria mulheres interessadas na área de biologia e não em exatas 
+como se esperaria.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
+  geom_histogram(stat = "count")
+```
+```{r warning=FALSE, echo=FALSE}
+table(workingdata$Field.Of.Interest[workingdata$Would.Enroll.In.CS == "Yes"])
+```
+
+A proporção de interessadas em biologia é consideravelmente maior do que o resto, 
+o que explica o fato de haver tantas mulheres de biologia interessadas em 
+ciência da computação, elas dominam todas as respostas (sim, não e talvez). 
+E de acordo com o gráfico abaixo, que usa proporção em vez de quantidade, tal 
+raciocínio é bem próximo da realidade.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
+  geom_histogram(stat = "count", position="fill")
+```
+Como é possível notar, Biologia manteve-se próxima em porcentagem em quase todas as 
+respostas  enquanto humanas diminuiu e exatas aumentou na resposta afirmativa, 
+o que condiz com a área de interesse.
+
+
+
+Em se tratando de quantidade de mulheres que responderam a enquete há um predomínio das que 
+estão no ensino médio. Conforme a escolaridade aumenta, menor é o interesse em exatas, 
+um fenômeno que aponta que a presença feminina está afetada não só na computação.
+
+```{r warning=FALSE, echo=FALSE}
+ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  geom_histogram(stat="count")
+```
+```{r warning=FALSE, echo=FALSE}
+ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  geom_histogram(stat="count", position = "fill")
+```
+
+Como há abundância de questões, resolveu-se pegar as que provavelmente mais influenciarão 
+na decisão de seguir carreira na área de CS. As 20 perguntas selecionadas foram as seguintes: 
+
+```{r}
+perguntas_selecionadas = c("Most.CS.Students.Are.Male", 
+                      "CS.Requires.Knowledge.In.Computers", 
+                      "Higher.Education.Required.To.Work.In.CS", 
+                      "Family.Approves.CS.Major", 
+                      "CS.Has.Low.Employability", 
+                      "CS.Work.Has.Long.Hours", 
+                      "CS.Is.Prestigious", 
+                      "CS.Provides.Good.Wages", 
+                      "Uses.Computer.At.Home", 
+                      "Uses.Computer.At.School", 
+                      "Uses.Computer.At.Library", 
+                      "Uses.Computer.At.Digital.Inclusion.Center", 
+                      "Has.Used.Text.Editor", 
+                      "Has.Used.Database", 
+                      "Has.Used.Internet", 
+                      "Has.Used.For.Creating.Web.Pages", 
+                      "Has.Used.For.Development")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+g1 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
+g4 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
+
+g2 <- ggplot(workingdata, aes(x=CS.Requires.Knowledge.In.Computers, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="CS Requires Knowledge", fill="Would Enroll In CS", y="Count")
+g5 <- ggplot(workingdata, aes(x=CS.Requires.Knowledge.In.Computers, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="CS Requires Knowledge", fill="Would Enroll In CS", y="Count")
+
+g3 <- ggplot(workingdata, aes(x=Family.Approves.CS.Major, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Family Approves CS Major", fill="Would Enroll In CS", y="Count")
+g6 <- ggplot(workingdata, aes(x=Family.Approves.CS.Major, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Family Approves CS Major", fill="Would Enroll In CS", y="Count")
+
+
+multiplot(g1, g2, g3, g4, g5, g6, cols=2)
+```
 
 # Conclusão
 
