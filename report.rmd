@@ -1,6 +1,6 @@
 ---
 title: "Relatório Meninas na Computação"
-author: [Alexandre Augusto, Amanda Oliveira Alves - 15/0116276, Rodrigo de Araujo Chaves - 13/0132624]
+author: [Alexandre Augusto, Amanda Oliveira Alves, Rodrigo de Araujo Chaves]
 output: 
   pdf_document:
     latex_engine: xelatex
@@ -10,6 +10,17 @@ output:
     toc: true
     theme: united
 ---
+
+**Trabalho - Meninas na Computação**
+
+**Alunos:**
+Alexandre Augusto -  
+Amanda Oliveira Alves - 15/0116276
+Rodrigo de Araujo Chaves - 13/0132624
+
+**Professor Orientador:**
+Prof. Vinicius Ruela Pereira Borges
+
 
 # Introdução
 
