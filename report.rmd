@@ -1,76 +1,272 @@
 ---
 title: "Relatório Meninas na Computação"
-author:
-- Alexandre Augusto
-- Amanda Oliveira
-- Rodrigo Chaves
-output:
-  html_document:
-    theme: united
-    toc: yes
+author: [Alexandre Augusto, Amanda Oliveira Alves, Rodrigo de Araujo Chaves]
+output: 
   pdf_document:
     latex_engine: xelatex
     template: ./eisvogel.tex
+    keep_tex: true
+  html_document:
+    toc: true
+    theme: united
 ---
 
-# Objetivo
+**Trabalho - Meninas na Computação**
 
-Utilizar os dados disponíveis e a linguagem R para tentar encontrar fatores que tenham correlação e/ou influência quando 
-meninas decidem qual curso superior querem fazer e se vão ou não fazer um curso na área
-de computação.
+**Alunos:**
+Alexandre Augusto -  
+Amanda Oliveira Alves - 15/0116276
+Rodrigo de Araujo Chaves - 13/0132624
+
+**Professor Orientador:**
+Prof. Vinicius Ruela Pereira Borges
+
 
 # Introdução
 
-Durante os anos de 2011 até 2014, a Professora Marístela de Holando aplicou um formulário 
-buscando encontrar fatores que são impactantes quando um menina quer escolher um curso
-de computação. Isso foi motivado pelo fato de que o número de meninas que ingressão 
-nos cursos dessa área é muito menor do que a quantidade de meninos que buscam cursar os mesmos 
-cursos.
+Hoje, os cursos da área de computação, Ciência da Computação, por exemplo, tem uma quantidade de
+meninos muito maior do que a quantidade de meninas. Motivada por essa estátistica, a Professora 
+Maristela Terto de Holanda aplicou um formulário de 2011 a 2014 na Semana Nacional de Ciência e 
+Tecnologia (SNCT) em Brasília buscando encontrar fatores que são impactantes quando 
+um menina quer escolher um curso de computação. Os dados foram disponibilizados pelo professor
+Vinicius Ruela Pereira Borges.
 
-O professor Vinícius Borges disponibilizou uma planilha de dados de uma pesquisa 
-realizada de 2011 a 2014 na Semana Nacional de Ciência e Tecnologia (SNCT) em Brasília e tal 
-pesquisa buscava descobrir um pouco mais sobre as meninas do ensino médio de Brasília e 
-por que o baixo nível de interesse nas áreas de Computação.
+Esse trabalho irá realizar as seguintes atividades:
 
-O trabalho consistirá em transformar e carregar os dados (o processo de extração foi 
-previamente feito). A partir das informações, espera-se obter um insight sobre a atual situação 
-das mulheres na computação.
+1. **Limpeza dos Dados:** explicar como foi o processo de carregamento dos dados (o processo 
+de extração foi previamente feito) e como os dados inconsistentes foram removidos.
 
-# Pacotes usados
+2. **Classificação de Atributos:** explicar quais métodos foram usados para classificar
+a importância/seleção dos dados para a próxima etapa.
+
+3. **Modelo de Treino**: usando o modelo *Support Vector Machine* [1], criar um
+modelo que mostre quais os atributos são mais importantes quando um menina vai decidir que
+quer ou não fazer o curso de Ciência da Computação.
+
+4. **Análise exploratória:** buscando encontrar de forma manual pontos relevantes quando um 
+menina vai decidir que quer ou não fazer o curso de Ciência da Computação.
+
+# Objetivo
+
+Utilizar os dados disponíveis e a linguagem R para tentar encontrar fatores que tenham 
+correlação e/ou influência quando 
+meninas decidem qual curso superior querem fazer e se vão ou não fazer um curso na área
+de computação.
+
+# Pacotes Utilizados
 
 ```{r results="hide", message=FALSE}
-require(dplyr)
-require(ggplot2)
-require(Rmisc)
+library(dplyr)
+library(caret)
+library(corrplot)
+library(knitr)
+library(ggplot2)
+library(Rmisc)
+```
+\newpage
+
+# 1. Limpeza dos Dados
+
+Inicialmente, o *data frame* possui as seguintes informações armazenadas.
+
+```{r}
+df <- read.csv("data.csv", header = TRUE, na.strings=c(""), 
+                  stringsAsFactors=FALSE)
+names(df)
 ```
 
-# Limpeza dos Dados
+Para facilitar o processo de limpeza desses dados, as células do *data frame* que possuem respostas
+em branco (`""`) são lidas como `NA` e assim podem ser removidas.
+<br/>
 
-Inicialmente, os Data Frames possuem as seguintes informações armazenadas, sendo a principal distinção entre os dois é que o numericworkingdata contém em vez de texto todas as informações em formato numérico  para facilitar a utilização para previsões.
-
-```{r import data,}
-workingdata <- read.csv("data.csv", header = TRUE, stringsAsFactors=TRUE)
-numericworkingdata <- read.csv("data.csv", header = TRUE, stringsAsFactors=FALSE)
-names(workingdata)
+```{r}
+df <- df[complete.cases(df),]
 ```
 
-Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram seu "Gênero".
 
-```{r check genders}
-workingdata %>%
-  group_by(Gender) %>%
-  dplyr::summarize(total = n())
+Observa-se que alunos que responderam os questinários colocaram seu "Gênero".
+
+```{r}
+kable(df %>%
+        group_by(Gender) %>%
+        dplyr::summarize(total = n()))
 ```
 
-Como é possível notar, há a presença de 13 meninos e 14 pessoas não informaram o sexo, 
-portanto, essas 27 pessoas devem ser removidas da análise.
+Como é possível notar, há a presença de 9 meninos que serão removidos da análise.
 
-```{r get only females}
+```{r}
+df <- df[df$Gender == 'F',]
+```
+\newpage
+
+# 2. Análise de Características
+
+É importante visualizar a coluna `Would.Enroll.In.CS` pois essa demonstra o interesse do estudante
+em curso um curso de Ciência da Computação. 
+
+```{r, echo=FALSE}
+kable(df %>%
+      group_by(Would.Enroll.In.CS) %>%
+      dplyr::summarize(total = n()))
+```
+
+As características importantes para a analise estão presentes na colunas 8 até a 38, as quais
+são perguntas do questionário que mostram atividades ou hábitos que podem possivelmente aumentar
+ou diminiur o interesse da estudante nos cursos de computação.
+
+Para essa análise, vamos remover as colunas `Year, Gender, Educational.Stage, Field.Of.Interest, Q1,
+Q2` para simplificar a análise.
+
+```{r}
+df <- df[, -(1:4), drop=FALSE ]
+df <- df[, -(2:3), drop=FALSE ]
+```
+
+## Preprocessamento
+
+Para simplificar a analise, usa-se a matriz de correlação para identificar quais atributos estão
+muito relacionados entre si e assim podem ser removidos. Para essa análise, todos os valores devem
+ser númericos. A função `decide` analisa a resposta em:
+
+1. "Yes" equivale a 2;
+2. "Maybe" equivale a 1;
+3. "No" equivale a 0
+
+e troca o valor para númerico. A coluna `Would.Enroll.In.CS` será transformada em factor para 
+análise de categorias.
+
+```{r}
+decide <- function(x) {
+  switch(x,
+    "Yes"= {
+      return(2)
+    },
+    "Maybe"={
+      return(1)
+    },
+    "No"={
+      return(0)
+    },
+    {
+      return(0)
+    }
+  )
+}
+
+for(j in 1:32) {
+  for(i in 1:3178) {
+    df[i, j] <- decide(df[i, j])
+  }
+  df[,j] <- as.numeric(df[,j])
+}
+
+df$Would.Enroll.In.CS <- factor(df$Would.Enroll.In.CS, 
+                                levels=c(0,1,2), 
+                                labels=c("No", "Maybe", "Yes"))
+```
+
+Agora a matriz de correlação pode ser calculada:
+
+```{r}
+corMatrix <- cor(df[,2:32])
+
+corrplot(corMatrix, method = "circle", cl.pos = "n", tl.pos = "n", 
+                    type = "lower")
+```
+
+Observando o gráfico, existem poucos atributos correlacionados, mas ainda existem.
+
+```{r}
+highlyCorrelated <- findCorrelation(corMatrix, cutoff=0.50)
+print(names(df)[highlyCorrelated])
+```
+
+Remove-se as colunas com correlação maior que 0.5.
+
+```{r}
+df <- df[,-highlyCorrelated]
+```
+\newpage
+
+# 3. Modelo de Treino
+
+Para essa analise, o conjunto de dados será dividido em dois grupos: o grupo de treino e o 
+grupo de testes.
+
+```{r}
+trainingIndexes <- createDataPartition(df$Would.Enroll.In.CS, 
+                                      p=0.85, list=FALSE)
+trainingData <- df[trainingIndexes,]
+testData <- df[-trainingIndexes,]
+```
+
+Usando o conjunto de dados de treino, usa-se a *Support Vector Machine* [1] com uma função 
+polinomial como *kernel* para criar um previsão de como os dados se comportam.
+
+```{r, results='hide', message=FALSE}
+trainingParameters <- trainControl(method="repeatedcv", number=10, 
+                                  repeats=2)
+
+SVModel <- train(Would.Enroll.In.CS ~ ., 
+                 data = trainingData,
+                 method = "svmPoly",
+                 trControl= trainingParameters,
+                 tuneGrid = data.frame(degree = 1,
+                                       scale = 1,
+                                       C = 1),
+                 preProcess = c("pca","scale","center"),
+                 na.action = na.omit
+)
+```
+
+Com o modelo preparado, usa-se a função `varImp` para descobrir quais colunas tem um impacto
+maior em cada classificação, ou seja, se o candidato optou por "No", "Maybe" ou "Yes" quando 
+respondeu `Would.Enroll.In.CS`.
+
+```{r}
+importance <- varImp(SVModel, scale=FALSE)
+plot(importance)
+```
+
+Agora, usando o conjunto de dados de teste, uma amostragem é criada tentando prever quantas 
+respostas corretas podem ser alcançadas usando esse modelo.
+
+```{r}
+predictions <- predict(SVModel, testData)
+cm <- confusionMatrix(predictions, testData$Would.Enroll.In.CS)
+print(cm)
+```
+
+Usando o Modelo *Support Vector Machine*, temos uma precisão de 56,51%.
+\newpage
+
+# 4. Análise exploratória
+
+## Preprocessamento
+
+Para manter essa etapa idependente das etapas executadas anteriormente,
+os dados são relidos dos arquivos `.csv` e limpados novamente.
+
+```{r}
+workingdata <- read.csv("data.csv", 
+                        header = TRUE, 
+                        stringsAsFactors=TRUE,
+                        na.strings=c(""))
+numericworkingdata <- read.csv("data.csv", 
+                        header = TRUE, 
+                        stringsAsFactors=FALSE,
+                        na.strings=c(""))
+workingdata <- workingdata[complete.cases(workingdata),]
+numericworkingdata <- 
+  numericworkingdata[complete.cases(numericworkingdata),]
 workingdata <- workingdata[workingdata$Gender == 'F',]
-numericworkingdata <- numericworkingdata[numericworkingdata$Gender == 'F',]
+numericworkingdata <- 
+  numericworkingdata[numericworkingdata$Gender == 'F',]
 ```
 
-Atualmente os dados encontram-se em sua maioria em formato de string, tendo como respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
+Atualmente os dados encontram-se em sua maioria em formato de string, tendo 
+como respostas "Yes", "No" e "Maybe". Para que se torne mais fácil de manipular, 
+iremos transformar tais strings em zeros ("No"), uns ("Yes") e dois ("Maybe").
 
 ```{r change yes maybe no}
 numericworkingdata[,5:38][numericworkingdata[,5:38] == "No"] = 0
@@ -79,12 +275,16 @@ numericworkingdata[,5:38][numericworkingdata[,5:38] == "Maybe"] = 2
 ```
 
 Os campos de interesse constituem basicamente de "Human Sciences", "Biology-Health Sciences"
-e "Exact Sciences", nomes relativamente grandes, portanto abreviaremos para 0, 1 e 2 respectivamente.
+e "Exact Sciences", nomes relativamente grandes, portanto abreviaremos para 0, 1 e 2 
+respectivamente.
 
-```{r change field of interest}
-numericworkingdata$Field.Of.Interest[numericworkingdata$Field.Of.Interest == "Human Sciences"] = 0
-numericworkingdata$Field.Of.Interest[numericworkingdata$Field.Of.Interest == "Biology-Health Sciences"] = 1
-numericworkingdata$Field.Of.Interest[numericworkingdata$Field.Of.Interest == "Exact Sciences"] = 2
+```{r change field of interest, echo=FALSE}
+numericworkingdata$Field.Of.Interest[
+  numericworkingdata$Field.Of.Interest == "Human Sciences"] = 0
+numericworkingdata$Field.Of.Interest[
+  numericworkingdata$Field.Of.Interest == "Biology-Health Sciences"] = 1
+numericworkingdata$Field.Of.Interest[
+  numericworkingdata$Field.Of.Interest == "Exact Sciences"] = 2
 ```
  
 Uma vez transformadas as informações, elas serão convertidas em fatores para melhor manipulá-las.
@@ -94,32 +294,40 @@ cols <- c(4,5,8:38)
 numericworkingdata[cols] <- lapply(numericworkingdata[cols], factor)
 ```
 
-# Análise exploratória
-
 Agora que o dado encontra-se bem formatado, é possível explorá-lo com maior facilidade.
 
-Como é possível notar, enquanto a maior parte das garotas encontra-se entre o não e o talvez, o grupo que entraria na ciência da computação é bem diverso, tendo em sua maioria mulheres interessadas na área de biologia e não em exatas como se esperaria.
+Como é possível notar, enquanto a maior parte das garotas encontra-se entre 
+o não e o talvez, o grupo que entraria na ciência da computação é bem diverso, 
+tendo em sua maioria mulheres interessadas na área de biologia e não em exatas 
+como se esperaria.
+
 ```{r echo=FALSE, warning=FALSE}
 ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
   geom_histogram(stat = "count")
 ```
 ```{r warning=FALSE, echo=FALSE}
-
 table(workingdata$Field.Of.Interest[workingdata$Would.Enroll.In.CS == "Yes"])
 ```
 
-A proporção de interessadas em biologia é consideravelmente maior do que o resto, o que explica o fato de haver tantas mulheres de biologia interessadas em ciência da computação, elas dominam todas as respostas (sim, não e talvez). E de acordo com o gráfico abaixo, que usa proporção em vez de quantidade, tal raciocínio é bem próximo da realidade.
+A proporção de interessadas em biologia é consideravelmente maior do que o resto, 
+o que explica o fato de haver tantas mulheres de biologia interessadas em 
+ciência da computação, elas dominam todas as respostas (sim, não e talvez). 
+E de acordo com o gráfico abaixo, que usa proporção em vez de quantidade, tal 
+raciocínio é bem próximo da realidade.
 
 ```{r echo=FALSE, warning=FALSE}
 ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
   geom_histogram(stat = "count", position="fill")
 ```
+Como é possível notar, Biologia manteve-se próxima em porcentagem em quase todas as 
+respostas  enquanto humanas diminuiu e exatas aumentou na resposta afirmativa, 
+o que condiz com a área de interesse.
 
-De acordo com o histograma, Biologia manteve-se próxima em porcentagem em quase todas as respostas  enquanto humanas diminuiu e exatas aumentou na resposta afirmativa, o que condiz com a área de interesse.
 
 
-
-Em se tratando de quantidade de mulheres que responderam a enquete há um predomínio das que estão no ensino médio. Conforme a escolaridade aumenta, menor é o interesse em exatas, um fenômeno que aponta que a presença feminina está afetada não só na computação.
+Em se tratando de quantidade de mulheres que responderam a enquete há um predomínio das que 
+estão no ensino médio. Conforme a escolaridade aumenta, menor é o interesse em exatas, 
+um fenômeno que aponta que a presença feminina está afetada não só na computação.
 
 ```{r warning=FALSE, echo=FALSE}
 ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
@@ -133,12 +341,23 @@ ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
 ```
 
 Como há abundância de questões, resolveu-se pegar as que provavelmente mais influenciarão na decisão de seguir carreira na área de CS. As perguntas selecionadas foram as seguintes: 
-```{r}
-perguntas_selecionadas = c("Most.CS.Students.Are.Male", "CS.Requires.Knowledge.In.Computers", "Family.Approves.CS.Major", "CS.Has.Low.Employability", "CS.Work.Has.Long.Hours", "CS.Is.Prestigious", "CS.Provides.Good.Wages", "Uses.Computer.At.Home", "Has.Used.Database", "Has.Used.For.Creating.Web.Pages", "Has.Used.For.Development")
-```
 
 ```{r warning=FALSE, echo=FALSE}
+perguntas_selecionadas = c("Most.CS.Students.Are.Male", 
+                      "CS.Requires.Knowledge.In.Computers", 
+                      "Family.Approves.CS.Major", 
+                      "CS.Has.Low.Employability", 
+                      "CS.Work.Has.Long.Hours", 
+                      "CS.Is.Prestigious", 
+                      "CS.Provides.Good.Wages", 
+                      "Uses.Computer.At.Home", 
+                      "Has.Used.Database", 
+                      "Has.Used.For.Creating.Web.Pages", 
+                      "Has.Used.For.Development")
+```
 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 g1 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count") +
   labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
@@ -237,17 +456,21 @@ multiplot(g5,g6,g7,g8,g17,g18,g19,g20, cols = 2)
 ```{r warning=FALSE, echo=FALSE}
 multiplot(g9,g10,g11,g12,g21,g22,g23,g24, cols = 2)
 ```
+
 ** Verificar possíveis associações para a parte seguinte
 
-
-
-# Predição
-
-Para o próximo passo, tentaremos prever a área de interesse usando as respostas dadas às ultimas perguntas, além de verificar qual pergunta é mais pertinente à previsão da área de interesse.
-
+=======
 # Conclusão
 
-** Comentar sobre os dados da análise
-** Comentar sobre a predição
-** Comentar sobre a impossibilidade de saber se as estudantes foram ou não para CIC
+Como a análise realizada nesse relatório, podem-se chegar a duas conclusões:
+
+1. A participação da familía tem um impacto muito forte para a candidata escolher ou não
+um curso na área de computação.
+2. As perguntas que tem uma importância menor 0.6 podem ter uma abordagem diferente para
+que em futuras pesquisas possam se aprofundar mais nessa questão e se aproximar
+mais de uma solução prática.
+
+# Referências
+
+[1] https://pt.wikipedia.org/wiki/Máquina_de_vetores_de_suporte acessado em 05/12/2017.
 
