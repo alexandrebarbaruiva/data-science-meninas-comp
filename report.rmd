@@ -134,36 +134,109 @@ ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
 
 Como há abundância de questões, resolveu-se pegar as que provavelmente mais influenciarão na decisão de seguir carreira na área de CS. As perguntas selecionadas foram as seguintes: 
 ```{r}
-perguntas_selecionadas = c("Most.CS.Students.Are.Male", "CS.Requires.Knowledge.In.Computers", "Higher.Education.Required.To.Work.In.CS", "Family.Approves.CS.Major", "CS.Has.Low.Employability", "CS.Work.Has.Long.Hours", "CS.Is.Prestigious", "CS.Provides.Good.Wages", "Uses.Computer.At.Home", "Uses.Computer.At.School", "Uses.Computer.At.Library", "Uses.Computer.At.Digital.Inclusion.Center", "Has.Used.Text.Editor", "Has.Used.Database", "Has.Used.Internet", "Has.Used.For.Creating.Web.Pages", "Has.Used.For.Development")
+perguntas_selecionadas = c("Most.CS.Students.Are.Male", "CS.Requires.Knowledge.In.Computers", "Family.Approves.CS.Major", "CS.Has.Low.Employability", "CS.Work.Has.Long.Hours", "CS.Is.Prestigious", "CS.Provides.Good.Wages", "Uses.Computer.At.Home", "Has.Used.Database", "Has.Used.For.Creating.Web.Pages", "Has.Used.For.Development")
 ```
 
-```{r}
+```{r warning=FALSE, echo=FALSE}
 
 g1 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count") +
   labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
-g4 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
+g13 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count", position = "fill") +
   labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
 
 g2 <- ggplot(workingdata, aes(x=CS.Requires.Knowledge.In.Computers, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count") +
   labs(x="CS Requires Knowledge", fill="Would Enroll In CS", y="Count")
-g5 <- ggplot(workingdata, aes(x=CS.Requires.Knowledge.In.Computers, fill=Would.Enroll.In.CS)) +
+g14 <- ggplot(workingdata, aes(x=CS.Requires.Knowledge.In.Computers, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count", position = "fill") +
   labs(x="CS Requires Knowledge", fill="Would Enroll In CS", y="Count")
 
 g3 <- ggplot(workingdata, aes(x=Family.Approves.CS.Major, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count") +
   labs(x="Family Approves CS Major", fill="Would Enroll In CS", y="Count")
-g6 <- ggplot(workingdata, aes(x=Family.Approves.CS.Major, fill=Would.Enroll.In.CS)) +
+g15 <- ggplot(workingdata, aes(x=Family.Approves.CS.Major, fill=Would.Enroll.In.CS)) +
   geom_histogram(stat="count", position = "fill") +
   labs(x="Family Approves CS Major", fill="Would Enroll In CS", y="Count")
 
+g4 <- ggplot(workingdata, aes(x=CS.Work.Has.Long.Hours, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="CS Work Has Long Hours", fill="Would Enroll In CS", y="Count")
+g16 <- ggplot(workingdata, aes(x=CS.Work.Has.Long.Hours, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="CS Work Has Long Hours", fill="Would Enroll In CS", y="Count")
 
-multiplot(g1, g2, g3, g4, g5, g6, cols=2)
+g5 <- ggplot(workingdata, aes(x=CS.Has.Low.Employability, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="CS Has Low Employability", fill="Would Enroll In CS", y="Count")
+g17 <- ggplot(workingdata, aes(x=CS.Has.Low.Employability, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="CS Has Low Employability", fill="Would Enroll In CS", y="Count")
+
+g6 <- ggplot(workingdata, aes(x=CS.Is.Prestigious, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="CS Is Prestigious", fill="Would Enroll In CS", y="Count")
+g18 <- ggplot(workingdata, aes(x=CS.Is.Prestigious, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="CS Is Prestigious", fill="Would Enroll In CS", y="Count")
+
+g7 <- ggplot(workingdata, aes(x=CS.Provides.Good.Wages, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="CS Provides Good Wages", fill="Would Enroll In CS", y="Count")
+g19 <- ggplot(workingdata, aes(x=CS.Provides.Good.Wages, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="CS Provides Good Wages", fill="Would Enroll In CS", y="Count")
+
+g8 <- ggplot(workingdata, aes(x=Uses.Computer.At.Home, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Uses Computer At Home", fill="Would Enroll In CS", y="Count")
+g20 <- ggplot(workingdata, aes(x=Uses.Computer.At.Home, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Uses Computer At Home", fill="Would Enroll In CS", y="Count")
+
+g9 <- ggplot(workingdata, aes(x=Has.Used.Database, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Has Used Database", fill="Would Enroll In CS", y="Count")
+g21 <- ggplot(workingdata, aes(x=Has.Used.Database, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Has Used Database", fill="Would Enroll In CS", y="Count")
+
+g10 <- ggplot(workingdata, aes(x=Has.Used.For.Creating.Web.Pages, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Has Used For Creating Web Pages", fill="Would Enroll In CS", y="Count")
+g22 <- ggplot(workingdata, aes(x=Has.Used.For.Creating.Web.Pages, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Has Used For Creating Web Pages", fill="Would Enroll In CS", y="Count")
+
+g11 <- ggplot(workingdata, aes(x=Has.Used.For.Development, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Has Used For Creating Web Pages", fill="Would Enroll In CS", y="Count")
+g23 <- ggplot(workingdata, aes(x=Has.Used.For.Development, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Has Used For Creating Web Pages", fill="Would Enroll In CS", y="Count")
+
+g12 <- ggplot(workingdata, aes(x=Has.Used.For.Development, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Has Used For Development", fill="Would Enroll In CS", y="Count")
+g24 <- ggplot(workingdata, aes(x=Has.Used.For.Development, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Has Used For Development", fill="Would Enroll In CS", y="Count")
+
 ```
 
+```{r warning=FALSE, echo=FALSE}
+multiplot(g1,g2,g3,g4,g13,g14,g15,g16, cols=2)
+
+```
+
+```{r warning=FALSE, echo=FALSE}
+multiplot(g5,g6,g7,g8,g17,g18,g19,g20, cols = 2)
+```
+
+```{r warning=FALSE, echo=FALSE}
+multiplot(g9,g10,g11,g12,g21,g22,g23,g24, cols = 2)
+```
 ** Verificar possíveis associações para a parte seguinte
 
 
