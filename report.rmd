@@ -41,10 +41,6 @@ das mulheres na computação.
 ```{r results="hide", message=FALSE}
 require(dplyr)
 require(ggplot2)
-require(party)
-require(rpart)
-require(rpart.plot)
-require(RColorBrewer)
 ```
 
 # Limpeza dos Dados
@@ -111,8 +107,17 @@ ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
 table(workingdata$Field.Of.Interest[workingdata$Would.Enroll.In.CS == "Yes"])
 ```
 
+A proporção de interessadas em biologia é consideravelmente maior do que o resto, o que explica o fato de haver tantas mulheres de biologia interessadas em ciência da computação, elas dominam todas as respostas (sim, não e talvez). E de acordo com o gráfico abaixo, que usa proporção em vez de quantidade, tal raciocínio é bem próximo da realidade.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
+  geom_histogram(stat = "count", position="fill")
+```
+Como é possível notar, Biologia manteve-se próxima em porcentagem em quase todas as respostas  enquanto humanas diminuiu e exatas aumentou na resposta afirmativa, o que condiz com a área de interesse.
 
 
+
+Em se tratando de quantidade de mulheres que responderam a enquete há um predomínio das que estão no ensino médio. Conforme a escolaridade aumenta, menor é o interesse em exatas, um fenômeno que aponta que a presença feminina está afetada não só na computação.
 
 ```{r warning=FALSE, echo=FALSE}
 ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
@@ -122,7 +127,21 @@ ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
 ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
   geom_histogram(stat="count", position = "fill")
 ```
-** Verificar porcentagens
+
+Como há abundância de questões, resolveu-se pegar as que provavelmente mais influenciarão na decisão de seguir carreira na área de CS. As 20 perguntas selecionadas foram as seguintes: 
+```{r}
+perguntas_selecionadas = c("Most.CS.Students.Are.Male", "CS.Requires.Knowledge.In.Computers", "Higher.Education.Required.To.Work.In.CS", "Family.Approves.CS.Major", "CS.Has.Low.Employability", "CS.Work.Has.Long.Hours", "CS.Is.Prestigious", "CS.Provides.Good.Wages", "Uses.Computer.At.Home", "Uses.Computer.At.School", "Uses.Computer.At.Library", "Uses.Computer.At.Digital.Inclusion.Center", "Has.Used.Text.Editor", "Has.Used.Image.Editor", "Has.Used.Spreadsheet", "Has.Used.Database", "Has.Used.Internet", "Has.Used.For.Creating.Web.Pages", "Has.Used.For.Development", "Has.Used.Other.Softwares")
+```
+
+```{r}
+attach(numericworkingdata)
+par(mfrow=c(4,4))
+hist(Most.CS.Students.Are.Male, main="Histogram of Males")
+hist(wt, main="Histogram of wt")
+hist(wt, main="Histogram of wt")
+hist(wt, main="Histogram of wt")
+hist(wt, main="Histogram of wt")
+```
 
 ** Verificar possíveis associações para a parte seguinte
 
