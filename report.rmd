@@ -41,6 +41,7 @@ das mulheres na computação.
 ```{r results="hide", message=FALSE}
 require(dplyr)
 require(ggplot2)
+require(Rmisc)
 ```
 
 # Limpeza dos Dados
@@ -58,7 +59,7 @@ Primeiro passo, sabe-se que os alunos que responderam os questinários colocaram
 ```{r check genders}
 workingdata %>%
   group_by(Gender) %>%
-  summarize(total = n())
+  dplyr::summarize(total = n())
 ```
 
 Como é possível notar, há a presença de 13 meninos e 14 pessoas não informaram o sexo, 
@@ -113,7 +114,8 @@ A proporção de interessadas em biologia é consideravelmente maior do que o re
 ggplot(workingdata, aes(x = Would.Enroll.In.CS, fill=Field.Of.Interest)) +
   geom_histogram(stat = "count", position="fill")
 ```
-Como é possível notar, Biologia manteve-se próxima em porcentagem em quase todas as respostas  enquanto humanas diminuiu e exatas aumentou na resposta afirmativa, o que condiz com a área de interesse.
+
+De acordo com o histograma, Biologia manteve-se próxima em porcentagem em quase todas as respostas  enquanto humanas diminuiu e exatas aumentou na resposta afirmativa, o que condiz com a área de interesse.
 
 
 
@@ -121,26 +123,45 @@ Em se tratando de quantidade de mulheres que responderam a enquete há um predom
 
 ```{r warning=FALSE, echo=FALSE}
 ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  labs(title="Histogram for Educational Stage", x = "Educational Stage", y = "Count", fill="Field of Interest") +
   geom_histogram(stat="count")
 ```
 ```{r warning=FALSE, echo=FALSE}
 ggplot(workingdata, aes(x=Educational.Stage, fill=Field.Of.Interest)) +
+  labs(title="Histogram for Educational Stage proportionally", x="Educational Stage", y="Count", fill="Field of Interest") +
   geom_histogram(stat="count", position = "fill")
 ```
 
-Como há abundância de questões, resolveu-se pegar as que provavelmente mais influenciarão na decisão de seguir carreira na área de CS. As 20 perguntas selecionadas foram as seguintes: 
+Como há abundância de questões, resolveu-se pegar as que provavelmente mais influenciarão na decisão de seguir carreira na área de CS. As perguntas selecionadas foram as seguintes: 
 ```{r}
-perguntas_selecionadas = c("Most.CS.Students.Are.Male", "CS.Requires.Knowledge.In.Computers", "Higher.Education.Required.To.Work.In.CS", "Family.Approves.CS.Major", "CS.Has.Low.Employability", "CS.Work.Has.Long.Hours", "CS.Is.Prestigious", "CS.Provides.Good.Wages", "Uses.Computer.At.Home", "Uses.Computer.At.School", "Uses.Computer.At.Library", "Uses.Computer.At.Digital.Inclusion.Center", "Has.Used.Text.Editor", "Has.Used.Image.Editor", "Has.Used.Spreadsheet", "Has.Used.Database", "Has.Used.Internet", "Has.Used.For.Creating.Web.Pages", "Has.Used.For.Development", "Has.Used.Other.Softwares")
+perguntas_selecionadas = c("Most.CS.Students.Are.Male", "CS.Requires.Knowledge.In.Computers", "Higher.Education.Required.To.Work.In.CS", "Family.Approves.CS.Major", "CS.Has.Low.Employability", "CS.Work.Has.Long.Hours", "CS.Is.Prestigious", "CS.Provides.Good.Wages", "Uses.Computer.At.Home", "Uses.Computer.At.School", "Uses.Computer.At.Library", "Uses.Computer.At.Digital.Inclusion.Center", "Has.Used.Text.Editor", "Has.Used.Database", "Has.Used.Internet", "Has.Used.For.Creating.Web.Pages", "Has.Used.For.Development")
 ```
 
 ```{r}
-attach(numericworkingdata)
-par(mfrow=c(4,4))
-hist(Most.CS.Students.Are.Male, main="Histogram of Males")
-hist(wt, main="Histogram of wt")
-hist(wt, main="Histogram of wt")
-hist(wt, main="Histogram of wt")
-hist(wt, main="Histogram of wt")
+
+g1 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
+g4 <- ggplot(workingdata, aes(x=Most.CS.Students.Are.Male, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Most CS Students Are Male", fill="Would Enroll In CS", y="Count")
+
+g2 <- ggplot(workingdata, aes(x=CS.Requires.Knowledge.In.Computers, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="CS Requires Knowledge", fill="Would Enroll In CS", y="Count")
+g5 <- ggplot(workingdata, aes(x=CS.Requires.Knowledge.In.Computers, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="CS Requires Knowledge", fill="Would Enroll In CS", y="Count")
+
+g3 <- ggplot(workingdata, aes(x=Family.Approves.CS.Major, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count") +
+  labs(x="Family Approves CS Major", fill="Would Enroll In CS", y="Count")
+g6 <- ggplot(workingdata, aes(x=Family.Approves.CS.Major, fill=Would.Enroll.In.CS)) +
+  geom_histogram(stat="count", position = "fill") +
+  labs(x="Family Approves CS Major", fill="Would Enroll In CS", y="Count")
+
+
+multiplot(g1, g2, g3, g4, g5, g6, cols=2)
 ```
 
 ** Verificar possíveis associações para a parte seguinte
